@@ -1,0 +1,6 @@
+.golangci*
+.git*
+.env
+Makefile
+docker-compose.yaml
+*Dockerfile
