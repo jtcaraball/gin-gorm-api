@@ -30,12 +30,16 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    secrets:
-      - config
+    environment:
+      - DEBUG
+      - TESTING
+      - DB_HOST=db
+      - DB_NAME
+      - DB_USER
+      - DB_PORT
+      - DB_PASSWORD
+      - TRUSTED_PROXIES
+      - SECRET
 
 volumes:
   dev_postgres_data:
-
-secrets:
-  config:
-    file: .env
