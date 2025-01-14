@@ -9,6 +9,5 @@ RUN go install github.com/swaggo/swag/cmd/swag@latest
 
 COPY go.mod go.sum ./
 RUN go mod download
-RUN go get github.com/swaggo/swag
 
 CMD ["air", "-c", ".air.toml"]
