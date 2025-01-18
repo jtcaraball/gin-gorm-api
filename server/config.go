@@ -21,7 +21,8 @@ type Config struct {
 
 // EngineConfig holds the config info for the http engine.
 type EngineConfig struct {
-	TrustedProxies []string `yaml:"trusted_proxies" env:"TRUSTED_PROXIES, overwrite"`
+	AllowedHost    []string `yaml:"allowed_hosts" env:"ALLOWED_HOSTS, overwrite"`     //nolint:lll // annotaions dont allow new lines.
+	TrustedProxies []string `yaml:"trusted_proxies" env:"TRUSTED_PROXIES, overwrite"` //nolint:lll // annotaions dont allow new lines.
 }
 
 // EngineConfig holds the config info for the database.
