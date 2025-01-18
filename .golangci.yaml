@@ -33,9 +33,10 @@ linters-settings:
       - switch
       - map
 
+  lll:
+    line-length: 79
+
   funlen:
-    # Ignore comments when counting lines.
-    # Default false
     ignore-comments: true
 
   gochecksumtype:
@@ -236,7 +237,6 @@ linters:
     - loggercheck # checks key value pairs for common logger libraries (kitlog,klog,logr,zap)
     - makezero # finds slice declarations with non-zero initial length
     - mirror # reports wrong mirror patterns of bytes/strings usage
-    - mnd # detects magic numbers
     - musttag # enforces field tags in (un)marshaled structs
     - nakedret # finds naked returns in functions greater than a specified function length
     - nestif # reports deeply nested if statements
@@ -245,7 +245,6 @@ linters:
     - nilnil # checks that there is no simultaneous return of nil error and an invalid value
     - noctx # finds sending http request without context.Context
     - nolintlint # reports ill-formed or insufficient nolint directives
-    - nonamedreturns # reports all named returns
     - nosprintfhostport # checks for misuse of Sprintf to construct a host with port in a URL
     - perfsprint # checks that fmt.Sprintf can be replaced with a faster alternative
     - predeclared # finds code that shadows one of Go's predeclared identifiers
@@ -317,6 +316,10 @@ issues:
   max-same-issues: 50
 
   exclude-rules:
+    - source: "// http[s]?:"
+      linters: [ lll ]
+    - source: "// @[A-Z]" # This allows for gin-swagger comments.
+      linters: [ lll ]
     - source: "(noinspection|TODO)"
       linters: [ godot ]
     - source: "//noinspection"
