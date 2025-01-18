@@ -45,10 +45,7 @@ func (h UserHanlder) create(c *gin.Context) {
 	r := h.db.WithContext(c.Request.Context()).Create(&user)
 	if r.Error != nil {
 		if errors.Is(r.Error, gorm.ErrDuplicatedKey) {
-			c.JSON(
-				http.StatusConflict,
-				schema.Errors{"error": r.Error.Error()},
-			)
+			c.JSON(http.StatusConflict, schema.SimpleError(r.Error))
 			return
 		}
 		_ = c.AbortWithError(http.StatusFailedDependency, r.Error)

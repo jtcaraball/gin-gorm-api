@@ -151,7 +151,7 @@ func handleTokenErrors(err error, c *gin.Context) {
 	invalidToken := errors.Is(err, provider.ErrTokenExpired) ||
 		errors.Is(err, provider.ErrInvalidToken)
 	if invalidToken {
-		c.JSON(http.StatusForbidden, schema.Errors{"error": err.Error()})
+		c.JSON(http.StatusForbidden, schema.SimpleError(err))
 		return
 	}
 	c.Status(http.StatusForbidden)
