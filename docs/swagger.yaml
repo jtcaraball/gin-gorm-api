@@ -1,15 +1,332 @@
+definitions:
+  model.User:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      updatedAt:
+        type: string
+      username:
+        type: string
+    type: object
+  schema.Errors:
+    additionalProperties:
+      type: string
+    type: object
+  schema.LoginForm:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  schema.NewUserForm:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      passwordAgain:
+        type: string
+      username:
+        type: string
+    type: object
+  schema.PasswordChangeForm:
+    properties:
+      password:
+        type: string
+      passwordAgain:
+        type: string
+    type: object
+  schema.PasswordResetForm:
+    properties:
+      password:
+        type: string
+      passwordAgain:
+        type: string
+      token:
+        type: string
+    type: object
+  schema.PasswordResetRequestForm:
+    properties:
+      email:
+        type: string
+    type: object
+  schema.UserOut:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      username:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
-  /hello:
-    get:
-      description: Say hello.
+  /auth:
+    delete:
+      consumes:
+      - application/json
+      description: End session
       produces:
       - application/json
       responses:
         "200":
-          description: ok
+          description: OK
+        "403":
+          description: forbidden
           schema:
             type: string
-      summary: Welcome!
+        default:
+          description: unexpected error
+          schema:
+            type: string
+      summary: Logout
+      tags:
+      - Auth
+    post:
+      consumes:
+      - application/json
+      description: Start session
+      parameters:
+      - description: Login form
+        in: body
+        name: form
+        required: true
+        schema:
+          $ref: '#/definitions/schema.LoginForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/schema.Errors'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - Auth
+  /auth/change_password:
+    post:
+      consumes:
+      - application/json
+      description: Change password
+      parameters:
+      - description: Password change form
+        in: body
+        name: form
+        required: true
+        schema:
+          $ref: '#/definitions/schema.PasswordChangeForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/schema.Errors'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            type: string
+      summary: Change password
+      tags:
+      - Auth
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Current session information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+        "403":
+          description: forbidden
+          schema:
+            type: string
+        default:
+          description: unexpected error
+          schema:
+            type: string
+      summary: Me
+      tags:
+      - Auth
+  /auth/request_password_reset:
+    post:
+      consumes:
+      - application/json
+      description: Request a password reset message
+      parameters:
+      - description: Password reset request form
+        in: body
+        name: form
+        required: true
+        schema:
+          $ref: '#/definitions/schema.PasswordResetRequestForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/schema.Errors'
+        "404":
+          description: Email not found
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            type: string
+      summary: Request password reset
+      tags:
+      - Auth
+  /auth/reset_password:
+    post:
+      consumes:
+      - application/json
+      description: Reset password
+      parameters:
+      - description: Password reset form
+        in: body
+        name: form
+        required: true
+        schema:
+          $ref: '#/definitions/schema.PasswordResetForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/schema.Errors'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/schema.Errors'
+        "404":
+          description: Target not found
+          schema:
+            type: string
+        default:
+          description: Unexpected error
+          schema:
+            type: string
+      summary: Password reset
+      tags:
+      - Auth
+  /user/:
+    get:
+      consumes:
+      - application/json
+      description: Get all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/schema.UserOut'
+            type: array
+        "403":
+          description: Forbidden
+        default:
+          description: Unexpected error
+          schema:
+            type: string
+      summary: Get all users
+      tags:
+      - User
+    post:
+      consumes:
+      - application/json
+      description: Create new user
+      parameters:
+      - description: User form
+        in: body
+        name: form
+        required: true
+        schema:
+          $ref: '#/definitions/schema.NewUserForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/schema.Errors'
+        "409":
+          description: Duplicate user
+          schema:
+            $ref: '#/definitions/schema.Errors'
+        default:
+          description: Unexpected error
+          schema:
+            type: string
+      summary: Create user
+      tags:
+      - User
+  /user/{user_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get user by ID
+      parameters:
+      - description: User id
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        default:
+          description: Unexpected error
+          schema:
+            type: string
+      summary: Get user
+      tags:
+      - User
 swagger: "2.0"
