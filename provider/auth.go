@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
@@ -24,11 +23,6 @@ const (
 	resetToken
 )
 
-// A messenger can send a message msg to an addr with a subject subj.
-type messeneger interface {
-	Send(c context.Context, addr, subj, msg string) error
-}
-
 // An authToken is a signed string that identifies a user and a time frame for
 // it to be used.
 type authToken struct {
@@ -48,7 +42,7 @@ type authTokenInfo struct {
 // model.User. It uses HMAC-SHA256 for token signing.
 type UserAuthManager struct {
 	db      *gorm.DB
-	msm     messeneger
+	msm     Mailer
 	secret  []byte
 	UserKey string
 }
@@ -57,7 +51,7 @@ type UserAuthManager struct {
 func NewUserAuthManager(
 	db *gorm.DB,
 	secret, userKey string,
-	msm messeneger,
+	msm Mailer,
 ) (manager UserAuthManager, err error) {
 	defer func() {
 		if err != nil {

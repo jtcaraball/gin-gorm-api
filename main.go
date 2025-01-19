@@ -32,7 +32,7 @@ func main() {
 		panic(err)
 	}
 
-	db, err := server.ConnectDB(config)
+	db, err := provider.ConnectDB(config)
 	if err != nil {
 		panic(err)
 	}
@@ -40,7 +40,7 @@ func main() {
 		panic(err)
 	}
 
-	mailer := server.NewMailer(config)
+	mailer := provider.NewMailer(config)
 	auth, err := provider.NewUserAuthManager(db, config.Secret, "user", mailer)
 	if err != nil {
 		panic(err)

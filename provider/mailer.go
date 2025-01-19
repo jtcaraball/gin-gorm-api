@@ -1,14 +1,18 @@
-package server
+package provider
 
 import (
 	"context"
+	"gin-gorm-api/server"
 	"log"
 )
 
+// A Mailer can send messages with a subject to and address.
 type Mailer interface {
+	// Send a message msg with a subject sbj to and address addr.
 	Send(c context.Context, addr, subj, msg string) error
 }
 
+// LogMailer is a basic Mailer that logs messages to the standard output.
 type LogMailer struct{}
 
 func (m LogMailer) Send(_ context.Context, addr, subj, msg string) error {
@@ -16,7 +20,8 @@ func (m LogMailer) Send(_ context.Context, addr, subj, msg string) error {
 	return nil
 }
 
-func NewMailer(config Config) Mailer {
+// NewMailer returns a Mailer as specified by config.
+func NewMailer(config server.Config) Mailer {
 	if config.Debug {
 		return LogMailer{}
 	}
