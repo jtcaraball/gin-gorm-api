@@ -2,7 +2,7 @@ package provider
 
 import (
 	"context"
-	"gin-gorm-api/server"
+	"gin-gorm-api/config"
 	"log"
 )
 
@@ -21,7 +21,7 @@ func (m LogMailer) Send(_ context.Context, addr, subj, msg string) error {
 }
 
 // NewMailer returns a Mailer as specified by config.
-func NewMailer(config server.Config) Mailer {
+func NewMailer(config config.Config) Mailer {
 	if config.Debug {
 		return LogMailer{}
 	}

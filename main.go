@@ -1,16 +1,26 @@
 package main
 
 import (
-	"gin-gorm-api/handler"
+	"gin-gorm-api/api"
+	"gin-gorm-api/config"
 	"gin-gorm-api/middleware"
 	"gin-gorm-api/model"
 	"gin-gorm-api/provider"
-	"gin-gorm-api/server"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+// Swagger information
+
+// @title        Gin & Gorm API
+// @version      0.1
+
+func logAndExit(err error) {
+	log.Fatalf("Failed to start server: %s", err)
+}
 
 func startServer(r *gin.Engine) {
 	// Create server with timeout
@@ -22,38 +32,38 @@ func startServer(r *gin.Engine) {
 	}
 
 	if err := srv.ListenAndServe(); err != nil {
-		panic(err)
+		logAndExit(err)
 	}
 }
 
 func main() {
-	config, err := server.LoadConfig()
+	config, err := config.LoadConfig()
 	if err != nil {
-		panic(err)
+		logAndExit(err)
 	}
 
-	db, err := provider.ConnectDB(config)
+	db, err := model.NewDBSession(config)
 	if err != nil {
-		panic(err)
+		logAndExit(err)
 	}
 	if err = model.RunMigration(db); err != nil {
-		panic(err)
+		logAndExit(err)
 	}
 
 	mailer := provider.NewMailer(config)
-	auth, err := provider.NewUserAuthManager(db, config.Secret, "user", mailer)
+	auth, err := provider.NewUserAuthManager(db, mailer, config, "user")
 	if err != nil {
-		panic(err)
+		logAndExit(err)
 	}
 	sm := middleware.NewSessionMiddleware(auth)
 
-	r, err := server.NewEngine(
+	r, err := api.NewEngine(
 		config,
-		handler.NewAuthHandler(auth, sm),
-		handler.NewUserHandler(db, sm),
+		api.NewAuthHandler(auth, sm),
+		api.NewUserHandler(db, sm),
 	)
 	if err != nil {
-		panic(err)
+		logAndExit(err)
 	}
 
 	startServer(r)

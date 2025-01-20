@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"gin-gorm-api/config"
 	"gin-gorm-api/model"
 	"gin-gorm-api/schema"
 	"time"
@@ -45,13 +46,15 @@ type UserAuthManager struct {
 	msm     Mailer
 	secret  []byte
 	UserKey string
+	secure  bool
 }
 
 // NewUserAuthManager returns a UserAuthManager.
 func NewUserAuthManager(
 	db *gorm.DB,
-	secret, userKey string,
 	msm Mailer,
+	conf config.Config,
+	userKey string,
 ) (manager UserAuthManager, err error) {
 	defer func() {
 		if err != nil {
@@ -59,7 +62,7 @@ func NewUserAuthManager(
 		}
 	}()
 
-	secretB, err := base64.StdEncoding.DecodeString(secret)
+	secretB, err := base64.StdEncoding.DecodeString(conf.Secret)
 	if err != nil {
 		return UserAuthManager{}, err
 	}
@@ -70,6 +73,7 @@ func NewUserAuthManager(
 		db:      db,
 		msm:     msm,
 		secret:  secretB,
+		secure:  !conf.Debug,
 		UserKey: userKey,
 	}
 	return manager, nil
@@ -114,7 +118,7 @@ func (m UserAuthManager) RegisterSession(
 		return fmt.Errorf("failed to register session: %w", err)
 	}
 	tokenS := base64.StdEncoding.EncodeToString(tokenB)
-	c.SetCookie("user_session", tokenS, seconds, "/", "", false, true)
+	c.SetCookie("user_session", tokenS, seconds, "/", "", m.secure, true)
 	return nil
 }
 
@@ -148,7 +152,7 @@ func (m UserAuthManager) RetrieveSession(
 
 // RemoveSession sets an empty user session cookie.
 func (m UserAuthManager) RemoveSession(c *gin.Context) {
-	c.SetCookie("user_session", "", -1, "/", "", false, true)
+	c.SetCookie("user_session", "", -1, "/", "", m.secure, true)
 }
 
 // RequestPasswordReset generates a password reset token and calls m.msm.Send

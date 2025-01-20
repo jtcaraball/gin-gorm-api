@@ -1,4 +1,4 @@
-package handler
+package api
 
 import (
 	"errors"
@@ -11,11 +11,13 @@ import (
 	"gorm.io/gorm"
 )
 
+// UserHanlder exposes endpoints to interact with the User model.
 type UserHanlder struct {
 	db     *gorm.DB
 	authMW gin.HandlerFunc
 }
 
+// NewUserHandler returns a new UserHanlder.
 func NewUserHandler(db *gorm.DB, authMW gin.HandlerFunc) UserHanlder {
 	return UserHanlder{db: db, authMW: authMW}
 }
@@ -28,7 +30,7 @@ func NewUserHandler(db *gorm.DB, authMW gin.HandlerFunc) UserHanlder {
 // @Accept       json
 // @Produce      json
 // @Param        form     body      schema.NewUserForm true "User form"
-// @Success      200      {object}  model.User
+// @Success      200      {object}  schema.UserOut
 // @Failure      400      {object}  schema.Errors "Bad request"
 // @Failure      409      {object}  schema.Errors "Duplicate user"
 // @Failure      default  {string}  string        "Unexpected error"
@@ -51,7 +53,10 @@ func (h UserHanlder) create(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusFailedDependency, r.Error)
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	c.JSON(
+		http.StatusOK,
+		schema.UserOut{ID: user.ID, Username: user.Username, Email: user.Email},
+	)
 }
 
 // GetUsers godoc
@@ -84,16 +89,19 @@ func (h UserHanlder) getAll(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        user_id  path      int true "User id"
-// @Success      200      {object}  model.User
+// @Success      200      {object}  schema.UserOut
 // @Failure      403
 // @Failure      404
 // @Failure      default  {string}  string "Unexpected error"
 // @Router       /user/{user_id}   [get]
 // .
 func (h UserHanlder) getByID(c *gin.Context) {
-	var user model.User
+	var user schema.UserOut
 	userID := c.Param("userid")
-	r := h.db.WithContext(c.Request.Context()).First(&user, userID)
+	r := h.db.WithContext(c.Request.Context()).Model(&model.User{}).First(
+		&user,
+		userID,
+	)
 	if r.Error != nil {
 		if errors.Is(r.Error, gorm.ErrRecordNotFound) {
 			c.Status(http.StatusNotFound)

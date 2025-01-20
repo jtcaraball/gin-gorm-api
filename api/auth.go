@@ -1,4 +1,4 @@
-package handler
+package api
 
 import (
 	"errors"
@@ -34,7 +34,7 @@ func NewAuthHandler(
 // @Accept       json
 // @Produce      json
 // @Param        form     body      schema.LoginForm true "Login form"
-// @Success      200      {object}  model.User
+// @Success      200      {object}  schema.UserOut
 // @Failure      400      {object}  schema.Errors "Bad request"
 // @Failure      403      {string}  string        "Forbidden"
 // @Failure      default  {string}  string        "Unexpected error"
@@ -43,16 +43,19 @@ func NewAuthHandler(
 func (h AuthHandler) login(c *gin.Context) {
 	formData, _ := c.Get("form")
 	form, _ := formData.(schema.LoginForm)
-	session, err := h.manager.Authenticate(form, c)
+	user, err := h.manager.Authenticate(form, c)
 	if err != nil {
 		c.Status(http.StatusForbidden)
 		return
 	}
-	if err = h.manager.RegisterSession(session, c); err != nil {
+	if err = h.manager.RegisterSession(user, c); err != nil {
 		_ = c.AbortWithError(http.StatusFailedDependency, err)
 		return
 	}
-	c.JSON(http.StatusOK, session)
+	c.JSON(
+		http.StatusOK,
+		schema.UserOut{ID: user.ID, Username: user.Username, Email: user.Email},
+	)
 }
 
 // LogoutSession godoc
@@ -78,19 +81,22 @@ func (h AuthHandler) logout(c *gin.Context) {
 // @Tags         Auth
 // @Accept       json
 // @Produce      json
-// @Success      200      {object}  model.User
+// @Success      200      {object}  schema.UserOut
 // @Failure      403      {string}  string  "forbidden"
 // @Failure      default  {string}  string  "unexpected error"
 // @Router       /auth/me [get]
 // .
 func (h AuthHandler) me(c *gin.Context) {
 	sessionData, _ := c.Get(h.manager.UserKey)
-	session, ok := sessionData.(model.User)
+	user, ok := sessionData.(model.User)
 	if !ok {
 		c.Status(http.StatusForbidden)
 		return
 	}
-	c.JSON(http.StatusAccepted, session)
+	c.JSON(
+		http.StatusOK,
+		schema.UserOut{ID: user.ID, Username: user.Username, Email: user.Email},
+	)
 }
 
 // RequestPasswordReset godoc
