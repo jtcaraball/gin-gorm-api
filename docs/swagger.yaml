@@ -1,17 +1,4 @@
 definitions:
-  model.User:
-    properties:
-      createdAt:
-        type: string
-      email:
-        type: string
-      id:
-        type: integer
-      updatedAt:
-        type: string
-      username:
-        type: string
-    type: object
   schema.Errors:
     additionalProperties:
       type: string
@@ -66,6 +53,8 @@ definitions:
     type: object
 info:
   contact: {}
+  title: Gin & Gorm API
+  version: "0.1"
 paths:
   /auth:
     delete:
@@ -105,7 +94,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.User'
+            $ref: '#/definitions/schema.UserOut'
         "400":
           description: Bad request
           schema:
@@ -164,7 +153,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.User'
+            $ref: '#/definitions/schema.UserOut'
         "403":
           description: forbidden
           schema:
@@ -284,7 +273,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.User'
+            $ref: '#/definitions/schema.UserOut'
         "400":
           description: Bad request
           schema:
@@ -317,7 +306,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.User'
+            $ref: '#/definitions/schema.UserOut'
         "403":
           description: Forbidden
         "404":

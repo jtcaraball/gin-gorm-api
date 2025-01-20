@@ -1,7 +1,9 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "title": "Gin \u0026 Gorm API",
+        "contact": {},
+        "version": "0.1"
     },
     "paths": {
         "/auth": {
@@ -32,7 +34,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.User"
+                            "$ref": "#/definitions/schema.UserOut"
                         }
                     },
                     "400": {
@@ -152,7 +154,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.User"
+                            "$ref": "#/definitions/schema.UserOut"
                         }
                     },
                     "403": {
@@ -335,7 +337,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.User"
+                            "$ref": "#/definitions/schema.UserOut"
                         }
                     },
                     "400": {
@@ -385,7 +387,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.User"
+                            "$ref": "#/definitions/schema.UserOut"
                         }
                     },
                     "403": {
@@ -405,26 +407,6 @@
         }
     },
     "definitions": {
-        "model.User": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "updatedAt": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
         "schema.Errors": {
             "type": "object",
             "additionalProperties": {
