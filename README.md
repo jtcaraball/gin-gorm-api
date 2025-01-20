@@ -5,6 +5,7 @@ An API boilerplate using Gin, Gorm and Docker.
 - Token based authentication scheme using HMAC-SHA256.
 - Custom scheme validation using middleware.
 - Live reloading.
+- PostgreSQL database for development, available through docker compose.
 - Swagger UI available at http://localhost:8080/swagger/index.html.
 
 ## Dependencies
