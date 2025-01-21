@@ -73,6 +73,9 @@ func newTestUser(t *testing.T) model.User {
 	return user
 }
 
+// A different function is needed for SELECTion, INSERTion and UPDATEing
+// because the postgres driver manages this queries differently.
+
 // mockSelectQuery adds expectation to mock to return instance when query
 // is evaluated. instance can be an error if one is expected.
 func mockSelectQuery(
