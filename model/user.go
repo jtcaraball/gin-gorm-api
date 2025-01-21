@@ -25,10 +25,8 @@ type User struct {
 // SetPassword sets u corresponding fields such that it can be authenticated
 // using pw.
 func (u *User) SetPassword(pw string) error {
-	if u.Salt == nil {
-		if err := u.newSalt(); err != nil {
-			return err
-		}
+	if err := u.newSalt(); err != nil {
+		return err
 	}
 	// Following recommendation from:
 	// https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pbkdf2

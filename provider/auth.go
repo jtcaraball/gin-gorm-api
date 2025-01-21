@@ -90,7 +90,11 @@ func (m UserAuthManager) Authenticate(
 		}
 	}()
 
-	r := m.db.WithContext(c).First(&user, "username = ?", form.Username)
+	r := m.db.WithContext(c.Request.Context()).First(
+		&user,
+		"username = ?",
+		form.Username,
+	)
 	if r.Error != nil {
 		return model.User{}, r.Error
 	}
@@ -241,9 +245,8 @@ func (m UserAuthManager) SetPassword(
 	if err = user.SetPassword(form.Password); err != nil {
 		return err
 	}
-	if r := m.db.WithContext(c.Request.Context()).Model(&user).Update(
-		"password",
-		user.Password,
+	if r := m.db.WithContext(c.Request.Context()).Model(&user).Save(
+		user,
 	); r.Error != nil {
 		return r.Error
 	}
