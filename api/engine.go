@@ -18,15 +18,25 @@ type routeAdder interface {
 
 // initEngine return a base gin.Engine as specified by config.
 func initEngine(conf config.Config) (*gin.Engine, error) {
-	r := gin.Default()
+	if conf.Testing {
+		gin.SetMode(gin.TestMode)
+	} else if !conf.Debug {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	var r *gin.Engine
+	if !conf.Testing { // We don't want logging dirtying test outputs.
+		r = gin.Default()
+	} else {
+		r = gin.New()
+		r.Use(gin.Recovery())
+	}
+
 	r.Use(middleware.PolicyHeaders())
 	r.Use(middleware.AllowedHosts(conf.Engine.AllowedHost))
 	err := r.SetTrustedProxies(conf.Engine.TrustedProxies)
 	if err != nil {
 		return nil, err
-	}
-	if !conf.Debug {
-		gin.SetMode(gin.ReleaseMode)
 	}
 	return r, nil
 }
