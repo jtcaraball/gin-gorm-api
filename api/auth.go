@@ -65,13 +65,14 @@ func (h AuthHandler) login(c *gin.Context) {
 // @Tags         Auth
 // @Accept       json
 // @Produce      json
-// @Success      200
+// @Success      204
 // @Failure      403      {string}  string  "forbidden"
 // @Failure      default  {string}  string  "unexpected error"
 // @Router       /auth    [delete]
 // .
 func (h AuthHandler) logout(c *gin.Context) {
 	h.manager.RemoveSession(c)
+	c.Status(http.StatusNoContent)
 }
 
 // SessionMe godoc
