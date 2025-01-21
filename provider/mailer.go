@@ -22,7 +22,7 @@ func (m LogMailer) Send(_ context.Context, addr, subj, msg string) error {
 
 // NewMailer returns a Mailer as specified by config.
 func NewMailer(config config.Config) Mailer {
-	if config.Debug {
+	if config.Debug || config.Testing {
 		return LogMailer{}
 	}
 	panic("no production emailer implemented")
