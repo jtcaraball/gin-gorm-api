@@ -30,7 +30,7 @@ func NewUserHandler(db *gorm.DB, authMW gin.HandlerFunc) UserHanlder {
 // @Accept       json
 // @Produce      json
 // @Param        form     body      schema.NewUserForm true "User form"
-// @Success      200      {object}  schema.UserOut
+// @Success      201      {object}  schema.UserOut
 // @Failure      400      {object}  schema.Errors "Bad request"
 // @Failure      409      {object}  schema.Errors "Duplicate user"
 // @Failure      default  {string}  string        "Unexpected error"
@@ -54,7 +54,7 @@ func (h UserHanlder) create(c *gin.Context) {
 		return
 	}
 	c.JSON(
-		http.StatusOK,
+		http.StatusCreated,
 		schema.UserOut{ID: user.ID, Username: user.Username, Email: user.Email},
 	)
 }
