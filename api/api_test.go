@@ -163,6 +163,7 @@ func mockUpdateQuery(
 		switch field.Kind() { //nolint:exhaustive // .
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
 			reflect.Int64:
+			pk = field.Int()
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32,
 			reflect.Float64:
 			pk = int64(field.Uint())
