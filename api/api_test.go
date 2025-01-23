@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -66,7 +67,11 @@ func newMockDB() (db *gorm.DB, mock sqlmock.Sqlmock, err error) {
 // newTestUser returns a model.User with username "user", email
 // "test@email.com" and password "password".
 func newTestUser(t *testing.T) model.User {
-	user := model.User{ID: 1, Username: "user", Email: "test@email.com"}
+	user := model.User{
+		Model:    gorm.Model{ID: 1},
+		Username: "user",
+		Email:    "test@email.com",
+	}
 	if err := user.SetPassword("password"); err != nil {
 		t.Fatal(err)
 	}
@@ -92,8 +97,9 @@ func mockSelectQuery(
 	values := []driver.Value{}
 	val := reflect.ValueOf(instance).Elem()
 	for i := range val.NumField() {
-		schema = append(schema, val.Type().Field(i).Name)
-		values = append(values, val.Field(i).Interface().(driver.Value))
+		// schema = append(schema, val.Type().Field(i).Name)
+		// values = append(values, val.Field(i).Interface().(driver.Value))
+		recursiveFieldInspect(val, i, &schema, &values, nil)
 	}
 
 	rows := sqlmock.NewRows(schema).AddRow(values...)
@@ -120,17 +126,54 @@ func mockInsertQuery(
 
 	val := reflect.ValueOf(instance).Elem()
 	for i := range val.NumField() {
-		schema = append(schema, val.Type().Field(i).Name)
-		values = append(values, val.Field(i).Interface().(driver.Value))
-		if val.Type().Field(i).Tag.Get("gorm") == "primarykey" {
-			pkIndx = i
-		}
+		// schema = append(schema, val.Type().Field(i).Name)
+		// values = append(values, val.Field(i).Interface().(driver.Value))
+		// if val.Type().Field(i).Tag.Get("gorm") == "primarykey" {
+		// 	pkIndx = i
+		// }
+		recursiveFieldInspect(val, i, &schema, &values, &pkIndx)
 	}
 
 	rows := sqlmock.NewRows([]string{schema[pkIndx]}).AddRow(values[pkIndx])
 	mock.ExpectBegin()
 	mock.ExpectQuery(query).WillReturnRows(rows)
 	mock.ExpectCommit()
+}
+
+var (
+	pkRGX       = regexp.MustCompile(`(?i)primarykey`) // gorm primarykey tag.
+	embeddedRGX = regexp.MustCompile(`(?i)embedded`)   // gorm embedded tag.
+)
+
+// recursiveFieldInspect traverses val fields and adds their name and value to
+// names and values. If pk is not nil then if a primarykey tagged field is
+// found its values is assigned to pk's reference. Any struct field not tagged
+// with the embedded tag is ignored.
+func recursiveFieldInspect(
+	val reflect.Value,
+	i int,
+	names *[]string,
+	values *[]driver.Value,
+	pk *int,
+) {
+	if !val.Type().Field(i).IsExported() {
+		return
+	}
+	if val.Type().Field(i).Type.Kind() != reflect.Struct {
+		(*names) = append((*names), val.Type().Field(i).Name)
+		(*values) = append((*values), val.Field(i).Interface().(driver.Value))
+		if pk != nil && pkRGX.MatchString(val.Type().Field(i).Tag.Get("gorm")) {
+			*pk = i
+		}
+		return
+	}
+	if !embeddedRGX.MatchString(val.Type().Field(i).Tag.Get("gorm")) {
+		return
+	}
+	val = val.Field(i)
+	for i = range val.NumField() {
+		recursiveFieldInspect(val, i, names, values, pk)
+	}
 }
 
 // mockUpdateQuery adds expectation to mock to return instance when query is
@@ -155,31 +198,59 @@ func mockUpdateQuery(
 	)
 	val := reflect.ValueOf(instance).Elem()
 	for i := range val.NumField() {
-		if val.Type().Field(i).Tag.Get("gorm") != "primarykey" {
-			continue
-		}
-		ok = true
-		field := val.Field(i)
-		switch field.Kind() { //nolint:exhaustive // .
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
-			reflect.Int64:
-			pk = field.Int()
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32,
-			reflect.Float64:
-			pk = int64(field.Uint())
-		default:
-			return fmt.Errorf(
-				"primarykey of instance %v is not an integer",
-				instance,
-			)
+		if err := recursivePrimaryKeySearch(val, i, &pk, &ok); err != nil {
+			return err
 		}
 	}
 	if !ok {
-		return fmt.Errorf("could not find primarykey on instance %v", instance)
+		return fmt.Errorf(
+			"could not find primarykey on instance of type %s",
+			val.Type().Name(),
+		)
 	}
 	mock.ExpectBegin()
 	mock.ExpectExec(query).WillReturnResult(sqlmock.NewResult(pk, 1))
 	mock.ExpectCommit()
+	return nil
+}
+
+func recursivePrimaryKeySearch(
+	val reflect.Value,
+	i int,
+	pk *int64,
+	ok *bool,
+) error {
+	if !val.Type().Field(i).IsExported() {
+		return nil
+	}
+	if val.Type().Field(i).Type.Kind() == reflect.Struct &&
+		embeddedRGX.MatchString(val.Type().Field(i).Tag.Get("gorm")) {
+		val = val.Field(i)
+		for i = range val.NumField() {
+			if err := recursivePrimaryKeySearch(val, i, pk, ok); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	if !pkRGX.MatchString(val.Type().Field(i).Tag.Get("gorm")) {
+		return nil
+	}
+
+	*ok = true
+	switch val.Field(i).Kind() { //nolint:exhaustive // .
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
+		reflect.Int64:
+		*pk = val.Field(i).Int()
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32,
+		reflect.Float64:
+		*pk = int64(val.Field(i).Uint())
+	default:
+		return fmt.Errorf(
+			"primarykey of instance of type %s is not an integer",
+			val.Type().Name(),
+		)
+	}
 	return nil
 }
 
