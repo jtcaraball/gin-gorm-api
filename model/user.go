@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
-	"time"
 
 	"golang.org/x/crypto/pbkdf2"
 	"gorm.io/gorm"
@@ -12,14 +11,11 @@ import (
 
 // User represents its namesake in the application.
 type User struct {
-	ID        uint   `gorm:"primarykey"`
-	Username  string `gorm:"unique;type:varchar(256)"`
-	Email     string `gorm:"unique;type:varchar(256)"`
-	Salt      []byte `json:"-" gorm:"size:8"`
-	Password  []byte `json:"-" gorm:"size:32"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	gorm.Model `gorm:"embedded"`
+	Username   string `gorm:"unique;type:varchar(256)"`
+	Email      string `gorm:"unique;type:varchar(256)"`
+	Salt       []byte `json:"-" gorm:"size:8"`
+	Password   []byte `json:"-" gorm:"size:32"`
 }
 
 // SetPassword sets u corresponding fields such that it can be authenticated

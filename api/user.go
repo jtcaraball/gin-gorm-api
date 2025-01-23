@@ -11,15 +11,15 @@ import (
 	"gorm.io/gorm"
 )
 
-// UserHanlder exposes endpoints to interact with the User model.
-type UserHanlder struct {
+// UserHandler exposes endpoints to interact with the User model.
+type UserHandler struct {
 	db     *gorm.DB
 	authMW gin.HandlerFunc
 }
 
-// NewUserHandler returns a new UserHanlder.
-func NewUserHandler(db *gorm.DB, authMW gin.HandlerFunc) UserHanlder {
-	return UserHanlder{db: db, authMW: authMW}
+// NewUserHandler returns a new UserHandler.
+func NewUserHandler(db *gorm.DB, authMW gin.HandlerFunc) UserHandler {
+	return UserHandler{db: db, authMW: authMW}
 }
 
 // CreateUser godoc
@@ -36,7 +36,7 @@ func NewUserHandler(db *gorm.DB, authMW gin.HandlerFunc) UserHanlder {
 // @Failure      default  {string}  string        "Unexpected error"
 // @Router       /user/   [post]
 // .
-func (h UserHanlder) create(c *gin.Context) {
+func (h UserHandler) create(c *gin.Context) {
 	formData, _ := c.Get("form")
 	form, _ := formData.(schema.NewUserForm)
 	user := model.User{Username: form.Username, Email: form.Email}
@@ -71,7 +71,7 @@ func (h UserHanlder) create(c *gin.Context) {
 // @Failure      default  {string}  string "Unexpected error"
 // @Router       /user/   [get]
 // .
-func (h UserHanlder) getAll(c *gin.Context) {
+func (h UserHandler) getAll(c *gin.Context) {
 	var users []schema.UserOut
 	if r := h.db.WithContext(c.Request.Context()).Model(&model.User{}).Find(
 		&users,
@@ -96,7 +96,7 @@ func (h UserHanlder) getAll(c *gin.Context) {
 // @Failure      default  {string}  string "Unexpected error"
 // @Router       /user/{user_id}   [get]
 // .
-func (h UserHanlder) getByID(c *gin.Context) {
+func (h UserHandler) getByID(c *gin.Context) {
 	var user schema.UserOut
 	userID, err := getParamID("userid", c)
 	if err != nil {
@@ -120,7 +120,7 @@ func (h UserHanlder) getByID(c *gin.Context) {
 }
 
 // AddRoutes add a group of routes to r under the path "/user".
-func (h UserHanlder) AddRoutes(r *gin.Engine) {
+func (h UserHandler) AddRoutes(r *gin.Engine) {
 	g := r.Group("/user")
 	g.POST("/", middleware.FormValidation[schema.NewUserForm](), h.create)
 	g.GET("/", h.authMW, h.getAll)
