@@ -90,6 +90,7 @@ func (h UserHanlder) getAll(c *gin.Context) {
 // @Produce      json
 // @Param        user_id  path      int true "User id"
 // @Success      200      {object}  schema.UserOut
+// @Failure      400      {object}  schema.Errors "Bad request"
 // @Failure      403
 // @Failure      404
 // @Failure      default  {string}  string "Unexpected error"
@@ -97,7 +98,12 @@ func (h UserHanlder) getAll(c *gin.Context) {
 // .
 func (h UserHanlder) getByID(c *gin.Context) {
 	var user schema.UserOut
-	userID := c.Param("userid")
+	userID, err := getParamID("userid", c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, schema.Errors{"user_id": err.Error()})
+		return
+	}
+
 	r := h.db.WithContext(c.Request.Context()).Model(&model.User{}).First(
 		&user,
 		userID,
