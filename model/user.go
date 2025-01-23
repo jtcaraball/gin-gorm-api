@@ -12,14 +12,14 @@ import (
 
 // User represents its namesake in the application.
 type User struct {
-	ID        uint           `json:"id"         gorm:"primarykey"`
-	Username  string         `json:"username"   gorm:"unique"`
-	Email     string         `json:"email"      gorm:"unique"`
-	Salt      []byte         `json:"-"`
-	Password  []byte         `json:"-"`
-	CreatedAt time.Time      `json:"createdAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
-	DeletedAt gorm.DeletedAt `json:"-"          gorm:"index"`
+	ID        uint   `gorm:"primarykey"`
+	Username  string `gorm:"unique;type:varchar(256)"`
+	Email     string `gorm:"unique;type:varchar(256)"`
+	Salt      []byte `json:"-" gorm:"size:8"`
+	Password  []byte `json:"-" gorm:"size:32"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
 // SetPassword sets u corresponding fields such that it can be authenticated
