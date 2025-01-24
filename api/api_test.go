@@ -156,10 +156,15 @@ func recursiveFieldInspect(
 	values *[]driver.Value,
 	pk *int,
 ) {
+	field := val.Type().Field(i)
 	if !val.Type().Field(i).IsExported() {
 		return
 	}
-	if val.Type().Field(i).Type.Kind() != reflect.Struct {
+	if field.Type.Kind() == reflect.Slice &&
+		field.Type.Elem().Kind() == reflect.Struct {
+		return
+	}
+	if field.Type.Kind() != reflect.Struct {
 		(*names) = append((*names), val.Type().Field(i).Name)
 		(*values) = append((*values), val.Field(i).Interface().(driver.Value))
 		if pk != nil && pkRGX.MatchString(val.Type().Field(i).Tag.Get("gorm")) {
@@ -214,6 +219,9 @@ func mockUpdateQuery(
 	return nil
 }
 
+// recursivePrimaryKeySearch traverses the fields of val recursively to find a
+// field with the primarykey gorm tag. Only struct fields that have the
+// embedded gorm tag are traversed.
 func recursivePrimaryKeySearch(
 	val reflect.Value,
 	i int,
