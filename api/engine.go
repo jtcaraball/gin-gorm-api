@@ -11,11 +11,6 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// A routeAdder is able to add routes to a gin.Engine.
-type routeAdder interface {
-	AddRoutes(g *gin.Engine)
-}
-
 // initEngine return a base gin.Engine as specified by config.
 func initEngine(conf config.Config) (*gin.Engine, error) {
 	if conf.Testing {
@@ -44,14 +39,10 @@ func initEngine(conf config.Config) (*gin.Engine, error) {
 // NewEngine returns a gin.Engine with the routes added by handlers.
 func NewEngine(
 	conf config.Config,
-	handlers ...routeAdder,
 ) (*gin.Engine, error) {
 	r, err := initEngine(conf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize engine: %w", err)
-	}
-	for _, handler := range handlers {
-		handler.AddRoutes(r)
 	}
 	// Add swagger 2.0 spec.
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

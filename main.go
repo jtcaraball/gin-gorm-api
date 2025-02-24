@@ -18,9 +18,7 @@ import (
 // @title        Gin & Gorm API
 // @version      0.1
 
-func logAndExit(err error) {
-	log.Fatalf("Failed to start server: %s", err)
-}
+const fatalMessage = "Failed to start server: %s"
 
 func startServer(r *gin.Engine) {
 	// Create server with timeout
@@ -32,38 +30,36 @@ func startServer(r *gin.Engine) {
 	}
 
 	if err := srv.ListenAndServe(); err != nil {
-		logAndExit(err)
+		log.Fatalf(fatalMessage, err)
 	}
 }
 
 func main() {
 	config, err := config.LoadConfig()
 	if err != nil {
-		logAndExit(err)
+		log.Fatalf(fatalMessage, err)
 	}
 
 	db, err := model.NewDBSession(config)
 	if err != nil {
-		logAndExit(err)
+		log.Fatalf(fatalMessage, err)
 	}
 	if err = model.RunMigration(db); err != nil {
-		logAndExit(err)
+		log.Fatalf(fatalMessage, err)
 	}
 
 	mailer := provider.NewMailer(config)
 	auth, err := provider.NewUserAuthManager(db, mailer, config, "user")
 	if err != nil {
-		logAndExit(err)
+		log.Fatalf(fatalMessage, err)
 	}
 	sm := middleware.NewSessionMiddleware(auth)
 
-	r, err := api.NewEngine(
-		config,
-		api.NewAuthHandler(auth, sm),
-		api.NewUserHandler(db, sm),
-	)
+	r, err := api.NewEngine(config)
+	api.NewAuthHandler(auth, sm).AddRoutes(r)
+	api.NewUserHandler(db, sm).AddRoutes(r)
 	if err != nil {
-		logAndExit(err)
+		log.Fatalf(fatalMessage, err)
 	}
 
 	startServer(r)
