@@ -37,9 +37,7 @@ func initEngine(conf config.Config) (*gin.Engine, error) {
 }
 
 // NewEngine returns a gin.Engine with the routes added by handlers.
-func NewEngine(
-	conf config.Config,
-) (*gin.Engine, error) {
+func NewEngine(conf config.Config) (*gin.Engine, error) {
 	r, err := initEngine(conf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize engine: %w", err)
