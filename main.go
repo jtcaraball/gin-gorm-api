@@ -56,11 +56,12 @@ func main() {
 	sm := middleware.NewSessionMiddleware(auth)
 
 	r, err := api.NewEngine(config)
-	api.NewAuthHandler(auth, sm).AddRoutes(r)
-	api.NewUserHandler(db, sm).AddRoutes(r)
 	if err != nil {
 		log.Fatalf(fatalMessage, err)
 	}
+
+	api.NewAuthHandler(auth, sm).AddRoutes(r)
+	api.NewUserHandler(db, sm).AddRoutes(r)
 
 	startServer(r)
 }
