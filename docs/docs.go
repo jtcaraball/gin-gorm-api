@@ -79,8 +79,8 @@ const docTemplate = `{
                 ],
                 "summary": "Logout",
                 "responses": {
-                    "200": {
-                        "description": "OK"
+                    "204": {
+                        "description": "No Content"
                     },
                     "403": {
                         "description": "forbidden",
@@ -343,8 +343,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/schema.UserOut"
                         }
@@ -397,6 +397,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/schema.UserOut"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/schema.Errors"
                         }
                     },
                     "403": {

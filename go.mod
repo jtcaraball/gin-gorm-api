@@ -4,7 +4,7 @@ go 1.23.4
 
 require (
 	github.com/gin-gonic/gin v1.10.0
-	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/sethvargo/go-envconfig v1.1.0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0

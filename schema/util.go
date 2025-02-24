@@ -3,7 +3,7 @@ package schema
 import (
 	"fmt"
 
-	validation "github.com/go-ozzo/ozzo-validation"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 // errToErrors takes an error produces by validation.ValidateStruct and
