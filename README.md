@@ -24,7 +24,6 @@ An API boilerplate using Gin, Gorm and Docker.
 - `make dev`: To run the project locally.
 - `make build`: To build the project as a docker image.
 - `make clean`: To remove the database volume.
-- `make test`: To run tests.
 
 ## Todo
 - Look for a better solution than sqlmock for endpoint testing.
