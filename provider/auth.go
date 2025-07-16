@@ -121,7 +121,7 @@ func (m UserAuthManager) RegisterSession(
 	if err != nil {
 		return fmt.Errorf("failed to register session: %w", err)
 	}
-	tokenS := base64.StdEncoding.EncodeToString(tokenB)
+	tokenS := base64.URLEncoding.EncodeToString(tokenB)
 	c.SetCookie("user_session", tokenS, seconds, "/", "", m.secure, true)
 	return nil
 }
@@ -188,7 +188,7 @@ func (m UserAuthManager) RequestPasswordReset(
 		c.Request.Context(),
 		form.Email,
 		"Password reset code",
-		base64.StdEncoding.EncodeToString(tokenB),
+		base64.URLEncoding.EncodeToString(tokenB),
 	)
 }
 
@@ -257,7 +257,7 @@ func (m UserAuthManager) SetPassword(
 // encoding.
 func (m UserAuthManager) parseToken(s string) (authToken, error) {
 	var token authToken
-	decToken, err := base64.StdEncoding.DecodeString(s)
+	decToken, err := base64.URLEncoding.DecodeString(s)
 	if err != nil {
 		return token, ErrInvalidToken
 	}
@@ -279,11 +279,11 @@ func (m UserAuthManager) validToken(token authToken) bool {
 		token.Info.IssuedAt,
 		token.Info.ExpiresAt.Sub(token.Info.IssuedAt),
 	)
-	code, err := base64.StdEncoding.DecodeString(token.VerificationCode)
+	code, err := base64.URLEncoding.DecodeString(token.VerificationCode)
 	if err != nil {
 		return false // This could be a bad token being given so not a problem.
 	}
-	verCode, err := base64.StdEncoding.DecodeString(verToken.VerificationCode)
+	verCode, err := base64.URLEncoding.DecodeString(verToken.VerificationCode)
 	if err != nil {
 		panic(err) // We generated this code so it is our problem.
 	}
@@ -313,6 +313,6 @@ func (m UserAuthManager) signedToken(
 	hmac.Write(info)
 	return authToken{
 		tokenInfo,
-		base64.StdEncoding.EncodeToString(hmac.Sum(nil)),
+		base64.URLEncoding.EncodeToString(hmac.Sum(nil)),
 	}
 }
