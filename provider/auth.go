@@ -9,6 +9,7 @@ import (
 	"gin-gorm-api/config"
 	"gin-gorm-api/model"
 	"gin-gorm-api/schema"
+	"net/url"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -257,6 +258,10 @@ func (m UserAuthManager) SetPassword(
 // encoding.
 func (m UserAuthManager) parseToken(s string) (authToken, error) {
 	var token authToken
+	s, err := url.QueryUnescape(s)
+	if err != nil {
+		return token, ErrInvalidToken
+	}
 	decToken, err := base64.URLEncoding.DecodeString(s)
 	if err != nil {
 		return token, ErrInvalidToken
@@ -279,11 +284,11 @@ func (m UserAuthManager) validToken(token authToken) bool {
 		token.Info.IssuedAt,
 		token.Info.ExpiresAt.Sub(token.Info.IssuedAt),
 	)
-	code, err := base64.URLEncoding.DecodeString(token.VerificationCode)
+	code, err := base64.StdEncoding.DecodeString(token.VerificationCode)
 	if err != nil {
 		return false // This could be a bad token being given so not a problem.
 	}
-	verCode, err := base64.URLEncoding.DecodeString(verToken.VerificationCode)
+	verCode, err := base64.StdEncoding.DecodeString(verToken.VerificationCode)
 	if err != nil {
 		panic(err) // We generated this code so it is our problem.
 	}
@@ -313,6 +318,6 @@ func (m UserAuthManager) signedToken(
 	hmac.Write(info)
 	return authToken{
 		tokenInfo,
-		base64.URLEncoding.EncodeToString(hmac.Sum(nil)),
+		base64.StdEncoding.EncodeToString(hmac.Sum(nil)),
 	}
 }
